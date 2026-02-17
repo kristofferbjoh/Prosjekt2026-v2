@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prosjekt 2026</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#0b1020" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+</head>
+
+<body>
+  <header>
+    <h1>Prosjekt 2026</h1>
+    <p>Plan, logg, notater og streak</p>
+  </header>
+
+  <div class="container">
+
+    <!-- DAGENS ØKT -->
+    <div class="card">
+      <div class="section-label">I dag</div>
+      <h2>
+        <span id="today-label">Dagens økt</span>
+        <span class="pill" id="phase-pill">Fase 1</span>
+      </h2>
+      <div class="today-date" id="today-date"></div>
+
+      <div class="grid-2">
+        <div>
+          <label class="small-label" for="phase-select">Fase</label>
+          <select id="phase-select">
+            <option value="phase1">Fase 1 – Oppbygging</option>
+            <option value="phase2">Fase 2 – Fotballklar</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="small-label" for="workout-select">Økt</label>
+          <select id="workout-select">
+            <option value="W1">Økt 1</option>
+            <option value="W2">Økt 2</option>
+            <option value="W3">Økt 3</option>
+            <option value="W4">Økt 4</option>
+            <option value="REST">Hviledag / mobilitet</option>
+
+            <option value="FOOTBALL">⚽ Fotball</option>
+            <option value="CARDIO">🏃 Kondisjon</option>
+            <option value="OTHER">🏋️ Annen styrke</option>
+            <option value="MOBILITY">🧘 Mobilitet / restitusjon</option>
+            <option value="CUSTOM">📝 Egendefinert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="workout-name" id="workout-name"></div>
+      <div class="workout-note" id="workout-note"></div>
+
+      <!-- Alternativ trening -->
+      <div id="alt-workout-wrap" class="alt-workout-wrap" style="display:none;">
+        <label class="small-label" for="alt-workout-note">Notat (valgfritt)</label>
+        <textarea id="alt-workout-note" rows="3" placeholder="Eks: 75 min fotball. Akilles 2/10 etterpå."></textarea>
+        <button class="btn btn-secondary" id="btn-save-draft-alt" type="button">Lagre økt (mellomlagring)</button>
+        <div class="footer-note">Autosave er på, men knappen er fin hvis du vil være sikker.</div>
+      </div>
+
+      <!-- Øvelser -->
+      <ul class="exercise-list" id="exercise-list"></ul>
+
+      <button class="btn btn-secondary" id="btn-save-draft" type="button">Lagre økt (mellomlagring)</button>
+      <div class="footer-note">Alt du skriver lagres automatisk. Du mister ikke data om du lukker appen.</div>
+
+      <div style="margin-top: 8px;">
+        <span class="tag" id="tag-daytype"></span>
+        <span class="tag">45 min-ish</span>
+      </div>
+    </div>
+
+    <!-- DAGLIG CHECKLISTE -->
+    <div class="card">
+      <div class="section-label">Daglig sjekkliste</div>
+      <h2><span>Fullfør dag</span></h2>
+
+      <ul class="habit-list">
+        <li class="habit-item">
+          <label for="doneWorkout">Trening gjennomført (styrke eller fotball)</label>
+          <input type="checkbox" id="doneWorkout">
+        </li>
+        <li class="habit-item">
+          <label for="chkProtein">Proteinmål</label>
+          <input type="checkbox" id="chkProtein">
+        </li>
+        <li class="habit-item">
+          <label for="chkWater">Vannmål</label>
+          <input type="checkbox" id="chkWater">
+        </li>
+        <li class="habit-item">
+          <label for="chkStretch">Kontor-strekk / mobilitet</label>
+          <input type="checkbox" id="chkStretch">
+        </li>
+        <li class="habit-item">
+          <label for="chkSleep">Søvn</label>
+          <input type="checkbox" id="chkSleep">
+        </li>
+      </ul>
+
+      <div class="streak-box">
+        <div>
+          <div class="streak-main">🔥 Streak: <span id="streakCurrent">0</span> dager</div>
+          <div class="streak-sub">Beste: <span id="streakBest">0</span> dager</div>
+        </div>
+        <div style="font-size:1.6rem;">🏆</div>
+      </div>
+
+      <button class="btn" id="btn-complete" type="button" onclick="completeDay()">Fullfør dag 	& oppdater streak</button>
+<button class="btn btn-secondary" id="btn-reset" type="button" onclick="resetAll()">Nullstill alle data</button>
+
+
+      <div class="footer-note">
+        Fullfør dag lagrer dagen i historikk og oppdaterer streak. Økt-innhold lagres uansett automatisk.
+      </div>
+    </div>
+
+    <!-- UKEOVERSIKT -->
+    <div class="card">
+      <div class="section-label">Siste 7 dager</div>
+      <h2><span>Historikk</span></h2>
+      <p class="workout-note muted">✅ = fullført, ⚠ = lagret men ikke full sjekkliste, ◻ = ikke logget.</p>
+      <div class="week-grid" id="week-grid"></div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>
