@@ -25,6 +25,8 @@ Netlify kan publisere repoets rotmappe direkte:
 
 Når en pull request flettes inn i `main`, publiserer Netlify automatisk dersom repoet er koblet til prosjektet.
 
+Deploy Preview utløses ved nye commits på PR-grenen og kan brukes til å teste v2 før den flettes inn i produksjon.
+
 ## Påminnelser
 
 En ren PWA kan ikke garantere egendefinerte, tidsstyrte varsler når appen er helt lukket uten en push-tjeneste. Appen tilbyr derfor en nedlastbar kalenderfil med gjentakende morgen- og kveldspåminnelser.
