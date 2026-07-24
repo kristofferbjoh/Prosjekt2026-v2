@@ -1,148 +1,380 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08111f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Prosjekt 2026" />
+  <meta name="description" content="Dagsplan, kosthold, trening og fremgang for Prosjekt 2026." />
   <title>Prosjekt 2026</title>
-
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- PWA -->
-  <meta name="theme-color" content="#0b1020" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="/icon-192.png" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
-
 <body>
-  <header>
-    <h1>Prosjekt 2026</h1>
-    <p>Plan, logg, notater og streak</p>
-  </header>
-
-  <div class="container">
-
-    <!-- DAGENS ØKT -->
-    <div class="card">
-      <div class="section-label">I dag</div>
-      <h2>
-        <span id="today-label">Dagens økt</span>
-        <span class="pill" id="phase-pill">Fase 1</span>
-      </h2>
-      <div class="today-date" id="today-date"></div>
-
-      <div class="grid-2">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">26</div>
         <div>
-          <label class="small-label" for="phase-select">Fase</label>
-          <select id="phase-select">
-            <option value="phase1">Fase 1 – Oppbygging</option>
-            <option value="phase2">Fase 2 – Fotballklar</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="small-label" for="workout-select">Økt</label>
-          <select id="workout-select">
-            <option value="W1">Økt 1</option>
-            <option value="W2">Økt 2</option>
-            <option value="W3">Økt 3</option>
-            <option value="W4">Økt 4</option>
-            <option value="REST">Hviledag / mobilitet</option>
-
-            <option value="FOOTBALL">⚽ Fotball</option>
-            <option value="CARDIO">🏃 Kondisjon</option>
-            <option value="OTHER">🏋️ Annen styrke</option>
-            <option value="MOBILITY">🧘 Mobilitet / restitusjon</option>
-            <option value="CUSTOM">📝 Egendefinert</option>
-          </select>
+          <div class="brand-title">Prosjekt 2026</div>
+          <div class="brand-subtitle">Konsekvent slår perfekt</div>
         </div>
       </div>
+      <button class="icon-button" id="installAppBtn" type="button" hidden aria-label="Installer app">↓</button>
+    </header>
 
-      <div class="workout-name" id="workout-name"></div>
-      <div class="workout-note" id="workout-note"></div>
-
-      <!-- Alternativ trening -->
-      <div id="alt-workout-wrap" class="alt-workout-wrap" style="display:none;">
-        <label class="small-label" for="alt-workout-note">Notat (valgfritt)</label>
-        <textarea id="alt-workout-note" rows="3" placeholder="Eks: 75 min fotball. Akilles 2/10 etterpå."></textarea>
-        <button class="btn btn-secondary" id="btn-save-draft-alt" type="button">Lagre økt (mellomlagring)</button>
-        <div class="footer-note">Autosave er på, men knappen er fin hvis du vil være sikker.</div>
-      </div>
-
-      <!-- Øvelser -->
-      <ul class="exercise-list" id="exercise-list"></ul>
-
-      <button class="btn btn-secondary" id="btn-save-draft" type="button">Lagre økt (mellomlagring)</button>
-      <div class="footer-note">Alt du skriver lagres automatisk. Du mister ikke data om du lukker appen.</div>
-
-      <div style="margin-top: 8px;">
-        <span class="tag" id="tag-daytype"></span>
-        <span class="tag">45 min-ish</span>
-      </div>
-    </div>
-
-    <!-- DAGLIG CHECKLISTE -->
-    <div class="card">
-      <div class="section-label">Daglig sjekkliste</div>
-      <h2><span>Fullfør dag</span></h2>
-
-      <ul class="habit-list">
-        <li class="habit-item">
-          <label for="doneWorkout">Trening gjennomført (styrke eller fotball)</label>
-          <input type="checkbox" id="doneWorkout">
-        </li>
-        <li class="habit-item">
-          <label for="chkProtein">Proteinmål</label>
-          <input type="checkbox" id="chkProtein">
-        </li>
-        <li class="habit-item">
-          <label for="chkWater">Vannmål</label>
-          <input type="checkbox" id="chkWater">
-        </li>
-        <li class="habit-item">
-          <label for="chkStretch">Kontor-strekk / mobilitet</label>
-          <input type="checkbox" id="chkStretch">
-        </li>
-        <li class="habit-item">
-          <label for="chkSleep">Søvn</label>
-          <input type="checkbox" id="chkSleep">
-        </li>
-      </ul>
-
-      <div class="streak-box">
-        <div>
-          <div class="streak-main">🔥 Streak: <span id="streakCurrent">0</span> dager</div>
-          <div class="streak-sub">Beste: <span id="streakBest">0</span> dager</div>
+    <main class="main-content">
+      <section class="view is-active" data-view="today" aria-labelledby="todayHeading">
+        <div class="hero-card">
+          <div class="hero-copy">
+            <div class="eyebrow" id="todayDate">I dag</div>
+            <h1 id="todayHeading">Dagens plan</h1>
+            <p id="dailyFocus">Følg rammen. Ingen heltedåd nødvendig.</p>
+          </div>
+          <div class="goal-ring" id="goalRing" aria-label="Fremgang mot målvekt">
+            <div>
+              <strong id="goalRingValue">–</strong>
+              <span>til mål</span>
+            </div>
+          </div>
         </div>
-        <div style="font-size:1.6rem;">🏆</div>
-      </div>
 
-      <button class="btn" id="btn-complete" type="button" onclick="completeDay()">Fullfør dag 	& oppdater streak</button>
-<button class="btn btn-secondary" id="btn-reset" type="button" onclick="resetAll()">Nullstill alle data</button>
+        <div class="target-grid">
+          <article class="target-card">
+            <span class="target-icon">🔥</span>
+            <div>
+              <span class="target-label">Kaloriramme</span>
+              <strong id="calorieTarget">1 800–2 100</strong>
+              <small>kcal</small>
+            </div>
+          </article>
+          <article class="target-card">
+            <span class="target-icon">💪</span>
+            <div>
+              <span class="target-label">Protein</span>
+              <strong id="proteinTarget">150–170</strong>
+              <small>gram</small>
+            </div>
+          </article>
+          <article class="target-card">
+            <span class="target-icon">⚖️</span>
+            <div>
+              <span class="target-label">Siste vekt</span>
+              <strong id="currentWeight">–</strong>
+              <small>kg</small>
+            </div>
+          </article>
+          <article class="target-card">
+            <span class="target-icon">🎯</span>
+            <div>
+              <span class="target-label">Målvekt</span>
+              <strong id="goalWeight">87,5</strong>
+              <small>kg</small>
+            </div>
+          </article>
+        </div>
 
+        <article class="card daily-score-card">
+          <div class="card-heading-row">
+            <div>
+              <span class="eyebrow">Dagens status</span>
+              <h2>Grunnmuren</h2>
+            </div>
+            <div class="score-badge"><strong id="dailyScore">0</strong><span>/100</span></div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="dailyScoreBar"></div></div>
+          <p class="helper-text" id="scoreMessage">Logg dagens viktigste ting. 70 poeng holder streaken i live.</p>
 
-      <div class="footer-note">
-        Fullfør dag lagrer dagen i historikk og oppdaterer streak. Økt-innhold lagres uansett automatisk.
-      </div>
-    </div>
+          <div class="metric-input-grid">
+            <label class="metric-input">
+              <span>Kalorier</span>
+              <div><input id="caloriesInput" type="number" inputmode="numeric" min="0" step="10" placeholder="0" /><small>kcal</small></div>
+            </label>
+            <label class="metric-input">
+              <span>Protein</span>
+              <div><input id="proteinInput" type="number" inputmode="numeric" min="0" step="1" placeholder="0" /><small>g</small></div>
+            </label>
+            <label class="metric-input">
+              <span>Vann</span>
+              <div><input id="waterInput" type="number" inputmode="decimal" min="0" step="0.25" placeholder="0" /><small>l</small></div>
+            </label>
+            <label class="metric-input">
+              <span>Søvn</span>
+              <div><input id="sleepInput" type="number" inputmode="decimal" min="0" max="14" step="0.25" placeholder="0" /><small>t</small></div>
+            </label>
+          </div>
 
-    <!-- UKEOVERSIKT -->
-    <div class="card">
-      <div class="section-label">Siste 7 dager</div>
-      <h2><span>Historikk</span></h2>
-      <p class="workout-note muted">✅ = fullført, ⚠ = lagret men ikke full sjekkliste, ◻ = ikke logget.</p>
-      <div class="week-grid" id="week-grid"></div>
-    </div>
+          <div class="habit-grid" id="habitGrid">
+            <button type="button" class="habit-toggle" data-habit="movement"><span>🚶</span><strong>Bevegelse</strong><small>gåtur, skritt eller økt</small></button>
+            <button type="button" class="habit-toggle" data-habit="mobility"><span>🧘</span><strong>Mobilitet</strong><small>5–15 minutter</small></button>
+            <button type="button" class="habit-toggle" data-habit="creatine"><span>🥄</span><strong>Kreatin</strong><small>5 gram</small></button>
+            <button type="button" class="habit-toggle" data-habit="structured"><span>🧭</span><strong>Struktur</strong><small>ingen tilfeldig småspising</small></button>
+          </div>
 
+          <button class="primary-button" id="completeDayBtn" type="button">Fullfør dagen</button>
+          <div class="streak-row">
+            <span>🔥 Nåværende streak: <strong id="currentStreak">0</strong></span>
+            <span>Beste: <strong id="bestStreak">0</strong></span>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-heading-row compact">
+            <div>
+              <span class="eyebrow">Rask logging</span>
+              <h2>Faste måltider</h2>
+            </div>
+            <button class="text-button" type="button" data-go="nutrition">Se matlogg</button>
+          </div>
+          <div class="preset-scroller" id="quickMealPresets"></div>
+        </article>
+
+        <article class="card plan-card">
+          <div class="card-heading-row compact">
+            <div>
+              <span class="eyebrow">Neste riktige handling</span>
+              <h2 id="nextActionTitle">Hold planen enkel</h2>
+            </div>
+            <span class="status-dot" id="nextActionDot"></span>
+          </div>
+          <p id="nextActionText">Start med å logge kalorier og protein. Resten er bonus.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-heading-row compact">
+            <div>
+              <span class="eyebrow">Trening</span>
+              <h2 id="todayWorkoutTitle">Velg dagens økt</h2>
+            </div>
+            <button class="text-button" type="button" data-go="training">Åpne økt</button>
+          </div>
+          <p class="helper-text" id="todayWorkoutNote">Fase 2 er aktiv. Akilles og energi styrer belastningen.</p>
+        </article>
+      </section>
+
+      <section class="view" data-view="nutrition" aria-labelledby="nutritionHeading">
+        <div class="page-heading">
+          <span class="eyebrow">Mat og oversikt</span>
+          <h1 id="nutritionHeading">Dagens matinntak</h1>
+          <p>Godt nok anslag er bedre enn null oversikt.</p>
+        </div>
+
+        <article class="card nutrition-summary">
+          <div class="macro-block">
+            <span>Kalorier</span>
+            <strong><span id="nutritionCalories">0</span> <small>kcal</small></strong>
+            <div class="progress-track small"><div class="progress-fill" id="calorieProgressBar"></div></div>
+            <small id="calorieProgressText">0 av dagens ramme</small>
+          </div>
+          <div class="macro-block">
+            <span>Protein</span>
+            <strong><span id="nutritionProtein">0</span> <small>g</small></strong>
+            <div class="progress-track small"><div class="progress-fill" id="proteinProgressBar"></div></div>
+            <small id="proteinProgressText">0 av dagens mål</small>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-heading-row compact">
+            <div>
+              <span class="eyebrow">Ett trykk</span>
+              <h2>Mine vanlige valg</h2>
+            </div>
+          </div>
+          <div class="preset-grid" id="mealPresets"></div>
+        </article>
+
+        <article class="card">
+          <span class="eyebrow">Legg til</span>
+          <h2>Eget måltid</h2>
+          <form id="customMealForm" class="form-stack">
+            <label><span>Navn</span><input id="mealNameInput" type="text" placeholder="For eksempel middag" maxlength="60" required /></label>
+            <div class="two-column-form">
+              <label><span>Kalorier</span><input id="mealCaloriesInput" type="number" inputmode="numeric" min="0" step="10" required /></label>
+              <label><span>Protein</span><input id="mealProteinInput" type="number" inputmode="numeric" min="0" step="1" required /></label>
+            </div>
+            <button class="secondary-button" type="submit">Legg til måltid</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <div class="card-heading-row compact">
+            <div>
+              <span class="eyebrow">I dag</span>
+              <h2>Måltidslogg</h2>
+            </div>
+            <button class="text-button danger-text" id="clearMealsBtn" type="button">Tøm</button>
+          </div>
+          <div id="mealLog" class="list-stack empty-state">Ingen måltider logget ennå.</div>
+        </article>
+      </section>
+
+      <section class="view" data-view="training" aria-labelledby="trainingHeading">
+        <div class="page-heading">
+          <span class="eyebrow">Fase 2 – Fotballklar</span>
+          <h1 id="trainingHeading">Dagens trening</h1>
+          <p>Bygg kapasitet uten å være dust med kroppen.</p>
+        </div>
+
+        <article class="card">
+          <div class="two-column-form">
+            <label><span>Fase</span>
+              <select id="phaseSelect">
+                <option value="phase1">Fase 1 – Oppbygging</option>
+                <option value="phase2">Fase 2 – Fotballklar</option>
+                <option value="phase3">Fase 3 – Estetikk</option>
+              </select>
+            </label>
+            <label><span>Økt</span>
+              <select id="workoutSelect"></select>
+            </label>
+          </div>
+          <div class="workout-intro">
+            <div>
+              <span class="pill" id="workoutTag">Økt</span>
+              <h2 id="workoutTitle">Velg økt</h2>
+              <p id="workoutDescription"></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card body-check-card">
+          <span class="eyebrow">Før økten</span>
+          <h2>Kroppssjekk</h2>
+          <div class="range-grid">
+            <label><span>Energi <strong id="energyValue">3</strong>/5</span><input id="energyRange" type="range" min="1" max="5" value="3" /></label>
+            <label><span>Akilles <strong id="achillesValue">0</strong>/10</span><input id="achillesRange" type="range" min="0" max="10" value="0" /></label>
+            <label><span>Ankel <strong id="ankleValue">0</strong>/10</span><input id="ankleRange" type="range" min="0" max="10" value="0" /></label>
+            <label><span>Rygg <strong id="backValue">0</strong>/10</span><input id="backRange" type="range" min="0" max="10" value="0" /></label>
+          </div>
+          <div class="coach-note" id="bodyCheckAdvice">Grønt lys: tren med 1–2 reps i reserve.</div>
+        </article>
+
+        <article class="card">
+          <div id="exerciseList" class="exercise-list"></div>
+          <label class="form-stack workout-note-field"><span>Notat fra økten</span><textarea id="workoutNoteInput" rows="3" placeholder="For eksempel: akilles 2/10 etter økten, god kontroll i knebøy"></textarea></label>
+          <button class="primary-button" id="completeWorkoutBtn" type="button">Lagre og fullfør økten</button>
+        </article>
+      </section>
+
+      <section class="view" data-view="progress" aria-labelledby="progressHeading">
+        <div class="page-heading">
+          <span class="eyebrow">Fremgang</span>
+          <h1 id="progressHeading">Veien mot 87–88 kg</h1>
+          <p>Se på trenden, ikke dagens tilfeldige væske.</p>
+        </div>
+
+        <div class="target-grid progress-cards">
+          <article class="target-card"><span class="target-icon">⚖️</span><div><span class="target-label">Siste</span><strong id="progressCurrentWeight">–</strong><small>kg</small></div></article>
+          <article class="target-card"><span class="target-icon">📉</span><div><span class="target-label">Endring</span><strong id="weightChange">–</strong><small>kg</small></div></article>
+          <article class="target-card"><span class="target-icon">〰️</span><div><span class="target-label">7-dagers snitt</span><strong id="weightAverage">–</strong><small>kg</small></div></article>
+          <article class="target-card"><span class="target-icon">🏁</span><div><span class="target-label">Igjen</span><strong id="weightRemaining">–</strong><small>kg</small></div></article>
+        </div>
+
+        <article class="card chart-card">
+          <div class="card-heading-row compact">
+            <div><span class="eyebrow">Siste 30 registreringer</span><h2>Vekttrend</h2></div>
+          </div>
+          <canvas id="weightChart" width="720" height="320" aria-label="Graf over vektutvikling"></canvas>
+          <div class="chart-empty" id="chartEmpty">Legg inn minst to målinger for å se trend.</div>
+        </article>
+
+        <article class="card">
+          <span class="eyebrow">Ny måling</span>
+          <h2>Logg fremgang</h2>
+          <form id="progressForm" class="form-stack">
+            <div class="two-column-form">
+              <label><span>Vekt</span><input id="progressWeightInput" type="number" inputmode="decimal" min="50" max="200" step="0.1" placeholder="94,3" required /></label>
+              <label><span>Midje</span><input id="waistInput" type="number" inputmode="decimal" min="50" max="180" step="0.5" placeholder="Valgfritt" /></label>
+            </div>
+            <label><span>Notat</span><input id="progressNoteInput" type="text" maxlength="100" placeholder="For eksempel: morgenvekt, god søvn" /></label>
+            <button class="secondary-button" type="submit">Lagre måling</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <div class="card-heading-row compact">
+            <div><span class="eyebrow">Historikk</span><h2>Siste målinger</h2></div>
+          </div>
+          <div id="weightHistory" class="list-stack empty-state">Ingen målinger registrert.</div>
+        </article>
+      </section>
+
+      <section class="view" data-view="more" aria-labelledby="moreHeading">
+        <div class="page-heading">
+          <span class="eyebrow">Tilpass og sikre</span>
+          <h1 id="moreHeading">Innstillinger</h1>
+          <p>Planen kan justeres uten å kode appen på nytt.</p>
+        </div>
+
+        <article class="card">
+          <span class="eyebrow">Mål</span>
+          <h2>Kalorier og protein</h2>
+          <form id="settingsForm" class="form-stack">
+            <div class="two-column-form">
+              <label><span>Ukedag min</span><input id="weekdayMinInput" type="number" min="1000" max="5000" step="50" /></label>
+              <label><span>Ukedag maks</span><input id="weekdayMaxInput" type="number" min="1000" max="5000" step="50" /></label>
+              <label><span>Helg min</span><input id="weekendMinInput" type="number" min="1000" max="5000" step="50" /></label>
+              <label><span>Helg maks</span><input id="weekendMaxInput" type="number" min="1000" max="5000" step="50" /></label>
+              <label><span>Protein min</span><input id="proteinMinInput" type="number" min="50" max="300" step="5" /></label>
+              <label><span>Protein maks</span><input id="proteinMaxInput" type="number" min="50" max="300" step="5" /></label>
+              <label><span>Målvekt</span><input id="goalWeightInput" type="number" min="50" max="200" step="0.5" /></label>
+              <label><span>Fotballdag</span><input id="footballCaloriesInput" type="number" min="1000" max="5000" step="50" /></label>
+            </div>
+            <button class="secondary-button" type="submit">Lagre mål</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <span class="eyebrow">Påminnelser</span>
+          <h2>Gjør planen vanskeligere å overse</h2>
+          <p class="helper-text">Nettappen kan vise varsler når den er aktiv. For pålitelige varsler selv når appen er lukket, kan du legge inn to gjentakende kalenderpåminnelser.</p>
+          <div class="button-stack">
+            <button class="secondary-button" id="notificationBtn" type="button">Aktiver nettvarsler</button>
+            <button class="secondary-button" id="calendarReminderBtn" type="button">Last ned kalenderpåminnelser</button>
+          </div>
+          <div class="coach-note muted-note" id="notificationStatus">Ingen varsler aktivert.</div>
+        </article>
+
+        <article class="card">
+          <span class="eyebrow">Data</span>
+          <h2>Backup og flytting</h2>
+          <div class="button-stack">
+            <button class="secondary-button" id="exportDataBtn" type="button">Eksporter backup</button>
+            <label class="file-button">Importer backup<input id="importDataInput" type="file" accept="application/json" /></label>
+            <button class="ghost-button danger-text" id="resetDataBtn" type="button">Nullstill appdata</button>
+          </div>
+        </article>
+
+        <article class="card info-card">
+          <span class="eyebrow">Planen akkurat nå</span>
+          <h2>Det vi faktisk prøver å oppnå</h2>
+          <ul class="clean-list">
+            <li>Fra cirka 94–94,6 kg mot 87–88 kg.</li>
+            <li>Beholde styrke og muskelmasse.</li>
+            <li>Få midjen og «håndtakene» tydelig ned.</li>
+            <li>Tåle fotball uten å ofre akilles, ankel eller rygg.</li>
+            <li>Treffe ukesgjennomsnittet – ikke være perfekt hver dag.</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Hovedmeny">
+      <button class="nav-item is-active" type="button" data-nav="today"><span>⌂</span><small>I dag</small></button>
+      <button class="nav-item" type="button" data-nav="nutrition"><span>◒</span><small>Mat</small></button>
+      <button class="nav-item" type="button" data-nav="training"><span>⚡</span><small>Trening</small></button>
+      <button class="nav-item" type="button" data-nav="progress"><span>↗</span><small>Fremgang</small></button>
+      <button class="nav-item" type="button" data-nav="more"><span>•••</span><small>Mer</small></button>
+    </nav>
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
-      });
-    }
-  </script>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js"></script>
 </body>
 </html>
