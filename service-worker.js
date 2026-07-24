@@ -1,4 +1,4 @@
-const CACHE_NAME = "prosjekt2026-v2.0.0";
+const CACHE_NAME = "prosjekt2026-v2.0.1";
 const CORE = [
   "/",
   "/index.html",
