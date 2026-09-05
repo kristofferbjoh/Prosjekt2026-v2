@@ -1,22 +1,20 @@
 {
   "name": "Prosjekt 2026",
-  "short_name": "P2026",
-  "description": "Dagsplan, kosthold, trening og fremgang.",
-  "id": "/",
-  "start_url": "/?source=pwa",
+  "short_name": "Prosjekt 2026",
+  "description": "Personlig trenings-, mat- og progresjonsapp.",
+  "start_url": "/?tab=today",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#07101d",
-  "theme_color": "#07101d",
-  "categories": ["health", "fitness", "lifestyle"],
+  "background_color": "#080d18",
+  "theme_color": "#0a0f1e",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ],
   "shortcuts": [
-    { "name": "Logg mat", "short_name": "Mat", "url": "/?view=nutrition", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Start økt", "short_name": "Trening", "url": "/?view=training", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Logg vekt", "short_name": "Vekt", "url": "/?view=progress", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+    { "name": "I dag", "short_name": "I dag", "url": "/?tab=today" },
+    { "name": "Trening", "short_name": "Trening", "url": "/?tab=training" },
+    { "name": "Mat", "short_name": "Mat", "url": "/?tab=food" },
+    { "name": "Fremgang", "short_name": "Fremgang", "url": "/?tab=progress" }
   ]
 }
