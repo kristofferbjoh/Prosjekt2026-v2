@@ -1,32 +1,38 @@
-# Prosjekt 2026 v2
+# Prosjekt 2026 v2.1
 
-Mobiltilpasset PWA for dagsplan, kosthold, trening og fremgang.
+Personlig, mobiltilpasset trenings- og matcoach. Statisk PWA uten konto, sporing, server eller betalte API-er. Brukerdata lagres på enheten og sendes ikke til GitHub eller Netlify.
 
-## Innhold
+## Daglig bruk
 
-- Automatisk kaloriramme: 1 800–2 100 kcal mandag–torsdag og 2 400–2 800 kcal fredag–søndag.
-- Egen fotballdagsramme og proteinmål på 150–170 gram.
-- Hurtiglogging av vanlige måltider og manuell måltidslogg.
-- Poengbasert dagsscore der 70 poeng holder streaken i live.
-- Treningsfase 1, 2 og forhåndsbygd fase 3 for estetikk.
-- Kroppssjekk for energi, akilles, ankel og rygg.
-- Lagring av vekt, reps og følelse per øvelse.
-- Vekttrend, 7-dagers snitt, midjemål og historikk.
-- Eksport og import av backup.
-- Kalenderpåminnelser og PWA/offline-støtte.
+- Innsjekk med energi, smerte, hevelse, søvn og reaksjon siden forrige økt. Rådene er forsiktige regler, ikke medisinsk klarering.
+- Redigerbar ukeplan med tirsdagsfotball og valgfri søndagsøkt. Eksisterende dagsplaner beholdes. Fase 1 og 2 videreføres.
+- Full økt og minimumsmodus. Utkast lagres ved hver endring; bare avkryssede sett lagres som gjennomført. Reps og følelse arves ikke automatisk.
+- Progresjonsforslag krever to sammenlignbare, komplette økter, minst to reps i reserve og vurdert toleranse. Ingen automatisk økning av belastningen.
+- Mat per porsjon eller 100 gram, desimalkomma, redigering, favoritter med mengde, datovalg og angre sletting. Kopiering legger til; den overskriver aldri dagens mat.
+- Kalorivurdering åpnes når hele matdagen er logget. Dagsscore er innsats og kontinuitet, ikke en helsemåling. Hvile teller som plan.
+- Vekttrend med faktiske datoavstander og tydelig datagrunnlag. Gamle målinger presenteres ikke som siste ukes snitt.
 
-## Netlify
+## Data og oppdatering
 
-Netlify kan publisere repoets rotmappe direkte:
+Beholder lagringsnøkkelen `p2026_v2_state`. Dataskjema 3 er en additiv oppdatering av v2. Ukjente felt beholdes. Original v2 lagres før migrering i `p2026_v2_state_before_v3`; eldre `p2026_*` nøkler slettes ikke. Treningsutkast, alternativ trening og tidligere beste streak tas med fra den gamle appen.
 
-- Production branch: `main`
-- Build command: tomt
-- Publish directory: `.`
+Import valideres før skriving. Standard er å legge til manglende poster; ved samme dato/ID beholdes eksisterende. Full gjenoppretting krever bekreftelse og lager en lokal gjenopprettingskopi. Eksporter egen backup før bytte av enhet/nettadresse eller sletting av nettleserdata. Data synkroniseres **ikke** mellom enheter eller domener.
 
-Når en pull request flettes inn i `main`, publiserer Netlify automatisk dersom repoet er koblet til prosjektet.
+Lagringsfeil vises permanent, og korrupt lagring overskrives ikke med en tom app. Stale skrivinger fra andre faner avvises. Ved konflikt: eksporter åpne utkast og last siden på nytt. Bruk helst én fane. LocalStorage er fortsatt begrenset av nettleserens kvote; lokal gjenopprettingskopi beskytter ikke mot sletting av all nettleserdata.
 
-Deploy Preview utløses ved nye commits på PR-grenen og kan brukes til å teste v2 før den flettes inn i produksjon.
+Service worker installerer en hel, versjonert pakke og venter på at brukeren velger oppdatering. Ingen automatisk reload midt i en økt. Ukjente ressurser og tredjepartsforespørsler blir ikke lagret i appens cache. Eksisterende PWA-startadresse/identitet beholdes.
 
-## Påminnelser
+## Utvikling og Netlify
 
-En ren PWA kan ikke garantere egendefinerte, tidsstyrte varsler når appen er helt lukket uten en push-tjeneste. Appen tilbyr derfor en nedlastbar kalenderfil med gjentakende morgen- og kveldspåminnelser.
+Node 22 eller nyere:
+
+```sh
+npm ci
+npm run build
+```
+
+Byggingen kjører regresjonstester og filkontroll før de 11 offentlige filene kopieres til `dist`. Produksjonen har ingen npm-avhengigheter; jsdom brukes bare i tester.
+
+`netlify.toml` setter bygg til `npm run build` og publiseringsmappe til `dist`. Behold **samme Netlify-site og domene** for å bevare tilgangen til eksisterende lokale data. `main` er produksjonsgren når Netlify er koblet til repoet. PR-grener kan brukes til Deploy Preview, men preview-domenet har separat, tom lagring.
+
+Ingen produksjonsdeploy skal betegnes som bekreftet uten terminal deploy-status og riktig URL. Testene dekker logikk og DOM-hendelser i jsdom samt service-worker-hendelser med simulerte nettverks-/cacheobjekter. De erstatter ikke testing av installasjon, Safari/iOS-lagring, visuell layout og offlineoppdatering på en fysisk telefon.

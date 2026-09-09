@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nb">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="/icon-192.png" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=2.1.0" />
 </head>
 <body>
   <header class="topbar">
@@ -24,6 +24,10 @@
   </header>
 
   <main class="app-shell">
+    <div id="storage-warning" class="callout bad hidden" role="alert"></div>
+    <div id="date-warning" class="callout warn hidden" role="status"></div>
+    <div id="update-banner" class="callout hidden" role="status"><span id="update-text">En ny versjon er klar.</span><button id="apply-update" class="btn btn-secondary">Lagre utkast og oppdater</button></div>
+    <p id="connection-status" class="connection-status" role="status"></p>
     <!-- I DAG -->
     <section class="screen active" id="screen-today" data-title="I dag">
       <div class="hero-card">
@@ -31,12 +35,14 @@
           <div class="eyebrow" id="coach-kicker">DAGENS COACH</div>
           <h2 id="coach-title">Planen din er klar</h2>
           <p id="coach-copy" class="muted">Logg en rask innsjekk, så tilpasser vi dagens anbefaling.</p>
+          <button id="coach-action" class="btn">Ta innsjekken</button>
         </div>
         <div class="score-ring" id="score-ring" style="--score:0">
           <div><strong id="today-score">0</strong><span>/100</span></div>
         </div>
       </div>
 
+      <p id="weekly-summary" class="weekly-summary"></p>
       <div class="card">
         <div class="card-head">
           <div>
@@ -85,6 +91,14 @@
           <label class="field"><span>Akilles <b id="achilles-out">0/10</b></span><input id="achilles" type="range" min="0" max="10" value="0" /></label>
           <label class="field"><span>Rygg <b id="back-out">0/10</b></span><input id="back" type="range" min="0" max="10" value="0" /></label>
         </div>
+        <div class="form-grid two">
+          <label class="field"><span>Reaksjon siden forrige økt</span><select id="readiness-reaction"><option value="unknown">Ikke vurdert / ingen økt</option><option value="same">Som vanlig</option><option value="better">Bedre</option><option value="worse">Mer vondt / stivere</option></select></label>
+          <label class="field"><span>Søvn (timer, valgfritt)</span><input id="readiness-sleep" type="text" inputmode="decimal" /></label>
+        </div>
+        <label class="check-label"><input id="readiness-swelling" type="checkbox" /> Hevelse i ankel / akilles i dag</label>
+        <label class="check-label"><input id="readiness-football" type="checkbox" /> Mer fotballbelastning enn vanlig denne uka</label>
+        <label class="check-label"><input id="readiness-redflags" type="checkbox" /> Ny kraftig smerte, svakhet eller vanskelig å belaste</label>
+        <p class="tiny muted">Vurder også hverdagen og morgenen etter trening. Lite vondt under en økt alene betyr ikke at belastningen var riktig.</p>
         <button class="btn" id="save-readiness">Lagre innsjekk</button>
         <div id="readiness-advice" class="callout hidden"></div>
       </div>
@@ -95,7 +109,7 @@
             <div class="eyebrow">KVELDSSJEKK</div>
             <h2>Gjør en god dag tellende</h2>
           </div>
-          <span class="pill">70+ = streak</span>
+          <span class="pill" id="streak-threshold">70+ = kontinuitet</span>
         </div>
         <div class="habit-grid">
           <label class="habit"><input type="checkbox" id="habit-plan" /><span><b>Dagens plan</b><small>Trening, fotball eller planlagt restitusjon</small></span></label>
@@ -105,7 +119,7 @@
         </div>
         <div class="score-breakdown" id="score-breakdown"></div>
         <button class="btn" id="complete-day">Avslutt dagen</button>
-        <p class="tiny muted">Poengsystemet belønner helheten. En uperfekt dag kan fortsatt være en god dag.</p>
+        <p id="score-note" class="tiny muted"></p>
       </div>
 
       <div class="card streak-card">
@@ -121,6 +135,7 @@
           <div><div class="eyebrow">ØKTBYGGER</div><h2>Tren smart, ikke bare hardt</h2></div>
           <span class="pill" id="training-readiness-pill">Readiness –</span>
         </div>
+        <label class="field date-field"><span>Dato for økten</span><input id="training-date" type="date" /></label>
         <div class="form-grid three">
           <label class="field"><span>Fase</span><select id="phase-select"><option value="phase1">Fase 1 – Oppbygging</option><option value="phase2">Fase 2 – Fotballklar</option></select></label>
           <label class="field"><span>Økt</span><select id="workout-select"></select></label>
@@ -142,8 +157,10 @@
           </div>
           <label class="field"><span>Notat</span><textarea id="alt-note" rows="3" placeholder="Hvordan gikk det? Hvordan reagerte kroppen?"></textarea></label>
         </div>
-        <button class="btn" id="save-workout">Lagre økt</button>
-        <p class="tiny muted">Økten lagres lokalt på telefonen. Vekt/reps brukes til neste progresjonsforslag.</p>
+        <p id="draft-status" class="tiny muted" role="status"></p>
+        <button class="btn" id="save-workout">Lagre gjennomført økt</button>
+        <button class="text-btn" id="new-session">Start et nytt utkast</button>
+        <p class="tiny muted">Økten lagres lokalt på telefonen. Marker utførte sett. Tidligere reps og følelse fylles ikke inn som om de er gjort i dag.</p>
       </div>
 
       <div class="card">
@@ -154,25 +171,30 @@
 
     <!-- MAT -->
     <section class="screen" id="screen-food" data-title="Mat">
+      <label class="field date-field"><span>Dato for matloggen</span><input id="food-date" type="date" /></label>
       <div class="macro-hero">
         <div><span>Kalorier</span><strong><span id="food-kcal-total">0</span></strong><small id="food-kcal-target"></small><div class="progress"><i id="food-kcal-progress"></i></div></div>
         <div><span>Protein</span><strong><span id="food-protein-total">0</span> g</strong><small id="food-protein-target"></small><div class="progress"><i id="food-protein-progress"></i></div></div>
       </div>
 
       <div class="card">
-        <div class="card-head"><div><div class="eyebrow">RASK LOGGING</div><h2>Legg til mat</h2></div><button class="text-btn" id="copy-yesterday">Dupliser gårsdagen</button></div>
+        <div class="card-head"><div><div class="eyebrow">RASK LOGGING</div><h2>Legg til mat</h2></div><button class="text-btn" id="copy-yesterday">Legg til fra dagen før</button></div>
         <div class="form-grid two">
           <label class="field span-2"><span>Mat / måltid</span><input id="food-name" type="text" placeholder="F.eks. Skyr + granola" /></label>
-          <label class="field"><span>Kcal per porsjon</span><input id="food-kcal" type="number" min="0" inputmode="decimal" /></label>
-          <label class="field"><span>Protein (g)</span><input id="food-protein" type="number" min="0" step="0.1" inputmode="decimal" /></label>
-          <label class="field"><span>Porsjoner</span><input id="food-qty" type="number" min="0.1" step="0.1" value="1" inputmode="decimal" /></label>
-          <label class="field"><span>&nbsp;</span><button class="btn no-margin" id="add-food">Legg til</button></label>
+          <label class="field"><span id="food-kcal-label">Kcal per porsjon</span><input id="food-kcal" type="text" inputmode="decimal" /></label>
+          <label class="field"><span id="food-protein-label">Protein per porsjon</span><input id="food-protein" type="text" inputmode="decimal" /></label>
+          <label class="field"><span id="food-qty-label">Porsjoner</span><input id="food-qty" type="text" value="1" inputmode="decimal" /></label>
+          <label class="field"><span>Næringsverdiene gjelder</span><select id="food-basis"><option value="portion">Én porsjon</option><option value="100g">100 gram</option></select></label>
+          <label class="field"><span>&nbsp;</span><button class="btn no-margin" id="add-food">Legg til</button></label><button id="cancel-food-edit" class="text-btn hidden" type="button">Avbryt redigering</button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-head"><div><div class="eyebrow">I DAG</div><h2>Matlogg</h2></div><span class="pill" id="food-entry-count">0 linjer</span></div>
         <div id="food-list" class="food-list"></div>
+        <button id="undo-food" class="btn btn-secondary hidden">Angre sletting</button>
+        <label class="check-label"><input id="nutrition-complete" type="checkbox" /> Hele matdagen er logget</label>
+        <p class="tiny muted">Markeringen åpner kalorivurderingen. Appen tolker ikke en halv matlogg som et kaloriunderskudd.</p>
       </div>
 
       <div class="card">
@@ -190,6 +212,7 @@
           <label class="field"><span>Midje (cm)</span><input id="metric-waist" type="number" min="40" max="200" step="0.1" inputmode="decimal" /></label>
           <label class="field"><span>&nbsp;</span><button class="btn no-margin" id="save-metric">Lagre i dag</button></label>
         </div>
+        <p id="weight-context" class="tiny muted"></p>
         <div class="stat-strip">
           <div><span>Siste vekt</span><strong id="last-weight">–</strong></div>
           <div><span>7-dagers snitt</span><strong id="avg-weight">–</strong></div>
@@ -215,18 +238,28 @@
           <label class="field"><span>Helg kcal – maks</span><input id="setting-weekend-high" type="number" min="1000" max="5000" /></label>
           <label class="field"><span>Målvekt (kg)</span><input id="setting-weight-goal" type="number" min="50" max="200" step="0.1" /></label>
         </div>
-        <button class="btn btn-secondary" id="save-settings">Lagre mål</button>
+        <div class="form-grid three">
+          <label class="field"><span>Styrkedager per uke</span><input id="setting-strength" type="number" min="1" max="5" /></label>
+          <label class="field"><span>Fotballdag kcal – min (valgfritt)</span><input id="setting-football-low" type="number" min="1200" max="5000" /></label>
+          <label class="field"><span>Fotballdag kcal – maks (valgfritt)</span><input id="setting-football-high" type="number" min="1200" max="5000" /></label>
+        </div>
+        <p class="tiny muted">Tomme fotballfelt bruker vanlig dagsmål. Appen regner ikke aktivitetsklokkens kalorier som et automatisk matbudsjett. Målene er redigerbare planverdier, ikke en beregning av ditt energibehov.</p>
+<h3>Din vanlige uke</h3><p class="tiny muted">Tirsdag er satt av til fotball. Søndagsfotball er valgfritt og velges som dagens plan. Tilpass dagene til uka di; allerede registrerte planer beholdes.</p><div class="form-grid three"><label class="field"><span>Mandag</span><select id="plan-week-1"></select></label><label class="field"><span>Tirsdag</span><select id="plan-week-2"></select></label><label class="field"><span>Onsdag</span><select id="plan-week-3"></select></label><label class="field"><span>Torsdag</span><select id="plan-week-4"></select></label><label class="field"><span>Fredag</span><select id="plan-week-5"></select></label><label class="field"><span>Lørdag</span><select id="plan-week-6"></select></label><label class="field"><span>Søndag</span><select id="plan-week-0"></select></label></div>        <button class="btn btn-secondary" id="save-settings">Lagre mål</button>
       </div>
 
       <div class="card">
         <div class="card-head"><div><div class="eyebrow">DATA</div><h2>Backup og gjenoppretting</h2></div><span class="pill">gratis</span></div>
+        <label class="field"><span>Ved import</span><select id="import-mode"><option value="merge">Legg til manglende historikk</option><option value="replace">Gjenopprett hele backupen</option></select></label>
         <div class="button-grid">
           <button class="btn btn-secondary" id="export-data">Eksporter backup</button>
           <label class="btn btn-secondary file-btn">Importer backup<input id="import-data" type="file" accept="application/json" /></label>
-          <button class="btn btn-ghost" id="reset-data">Nullstill v2-data</button>
+          <button class="btn btn-secondary" id="recovery-export">Last ned gjenopprettingskopi</button>
+          <button class="btn btn-secondary" id="emergency-export">Eksporter åpne data</button>
+          <button class="btn btn-ghost" id="reset-data">Nullstill appdata</button>
         </div>
-        <p class="tiny muted">Backup inneholder trenings-, mat-, mål- og fremgangsdata fra denne appen. Eldre Prosjekt 2026-data slettes ikke av migreringen.</p>
+        <p class="tiny muted">Backup inneholder trenings-, mat-, mål- og fremgangsdata fra denne appen. Eldre Prosjekt 2026-data slettes ikke av migreringen. Data er knyttet til denne nettadressen og enheten. Eksporter før bytte av adresse, telefon eller nettleser. Ingen automatisk skysynkronisering.</p>
       </div>
+      <div class="card"><h2>App og personvern</h2><p>Versjon 2.1.0 · Ingen konto, sporing eller betalte tjenester.</p><p id="install-help" class="muted">På iPhone: Del → Legg til på Hjem-skjermen. På Android: nettlesermeny → Installer app.</p><button id="install-app" class="btn btn-secondary hidden">Installer appen</button><button id="persist-data" class="btn btn-secondary">Be nettleseren beholde data</button><p id="persistence-status" class="tiny muted">En nedlastet backup er fortsatt viktig selv om appen er installert.</p><details><summary>Hvordan coachrådene fungerer</summary><p>Rådene bruker loggene dine og faste regler. Readiness er ikke en diagnose eller en validert medisinsk score. Fase 2 videreføres; fysioterapeutens tilpasninger går foran appens forslag.</p><p><a href="https://www.nhs.uk/symptoms/foot-pain/ankle-pain/" target="_blank" rel="noopener noreferrer">NHS: ankelplager og når du bør søke hjelp</a> · <a href="https://acsm.org/resistance-training-guidelines-update-2026/" target="_blank" rel="noopener noreferrer">ACSM: styrketrening og individuell tilpasning</a></p></details></div>
     </section>
   </main>
 
@@ -238,11 +271,11 @@
   </nav>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="/app.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(() => {}));
-    }
-  </script>
+  <noscript>Denne appen trenger JavaScript for å åpne dine lokale logger.</noscript>
+  <script src="/coach-core.js?v=2.1.0"></script>
+  <script src="/storage.js?v=2.1.0"></script>
+  <script src="/programs.js?v=2.1.0"></script>
+  <script src="/app.js?v=2.1.0"></script>
+  <script src="/pwa.js?v=2.1.0"></script>
 </body>
 </html>
