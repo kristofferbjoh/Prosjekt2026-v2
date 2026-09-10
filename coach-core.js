@@ -80,6 +80,65 @@
     if (number(f.kcal)===null || number(f.protein)===null || qty===null || qty<=0 || qty>1000 || number(f.kcal)<0 || number(f.kcal)>20000 || number(f.protein)<0 || number(f.protein)>2000) throw Error("Bruk positive, gyldige matmengder og næringsverdier.");
     return f;
   }
+  const LEGACY_V2_PREFIX="p2026v2_";
+  const LEGACY_V2_KEYS=new Set(["W1","W2","W3","W4","REST","FOOTBALL","CARDIO","MOBILITY","OTHER"]);
+  const LEGACY_V2_EXERCISES={
+    W1:["Sittende roing","Benkpress","Nedtrekk","Arnoldpress / manualpress","Incline manualpress","Face pulls","Hammer curl","Tricepspress"],
+    W2:["Benpress / goblet squat med hælløft","Rumensk markløft","Hip thrust","Leg curl","Enarms roing","Pallof press","Soleus-/tåhev"]
+  };
+  function isLegacyV2Backup(input) {
+    if (!object(input) || object(input.state)) return false;
+    const entries=Object.entries(input);
+    return entries.length>0 && entries.every(([key,value])=>key.startsWith(LEGACY_V2_PREFIX) && typeof value==="string") && entries.some(([key])=>/^p2026v2_(?:settings|weights|streak|phase|day_\d{4}-\d{2}-\d{2}|last_)/.test(key));
+  }
+  function parseLegacyV2Value(raw) {
+    return JSON.parse(raw,(key,value)=>{if(["__proto__","prototype","constructor"].includes(key))throw Error("Ugyldig nøkkel i gammel backup.");return value;});
+  }
+  function convertLegacyV2Backup(input) {
+    if (!isLegacyV2Backup(input)) throw Error("Filen er ikke en eldre Prosjekt 2026-backup.");
+    const decoded=Object.create(null);
+    try { for (const [key,value] of Object.entries(input)) decoded[key.slice(LEGACY_V2_PREFIX.length)]=parseLegacyV2Value(value); }
+    catch (_) { throw Error("Den gamle backupen inneholder en skadet registrering."); }
+    const out=defaultState(),oldSettings=object(decoded.settings)?decoded.settings:{};
+    const assignNumber=(target,source)=>{const value=number(oldSettings[source]);if(value!==null)out.settings[target]=value;};
+    assignNumber("protein","proteinMax");assignNumber("kcalLow","weekdayMin");assignNumber("kcalHigh","weekdayMax");
+    assignNumber("weekendLow","weekendMin");assignNumber("weekendHigh","weekendMax");assignNumber("weightGoal","goalWeight");
+    const football=number(oldSettings.footballCalories);if(football!==null)out.settings.footballLow=out.settings.footballHigh=football;
+    out.phase=["phase1","phase2"].includes(decoded.phase)?decoded.phase:"phase2";
+    out.metrics=decoded.weights===undefined?[]:clone(decoded.weights);
+    if(!Array.isArray(out.metrics))throw Error("Den gamle backupen har ugyldige vektmålinger.");
+    const waterTarget=number(oldSettings.waterTarget,2),sleepTarget=number(oldSettings.sleepTarget,7),proteinTarget=number(oldSettings.proteinMin,out.settings.protein);
+    for(const [rawKey,rawDay] of Object.entries(decoded).filter(([key])=>/^day_\d{4}-\d{2}-\d{2}$/.test(key)).sort(([a],[b])=>a.localeCompare(b))) {
+      const date=rawKey.slice(4);if(!object(rawDay) || (rawDay.date && rawDay.date!==date))throw Error(`Ugyldig gammel dagslogg: ${date}.`);
+      const training=object(rawDay.training)?rawDay.training:{},oldHabits=object(rawDay.habits)?rawDay.habits:{};
+      const workoutKey=LEGACY_V2_KEYS.has(training.workoutKey)?training.workoutKey:defaultPlanKey(dateFromISO(date),out.settings.weeklyPlan);
+      const weekend=[0,5,6].includes(dateFromISO(date).getDay()),footballDay=workoutKey==="FOOTBALL" && football!==null;
+      const low=footballDay?football:weekend?number(oldSettings.weekendMin,out.settings.weekendLow):number(oldSettings.weekdayMin,out.settings.kcalLow);
+      const high=footballDay?football:weekend?number(oldSettings.weekendMax,out.settings.weekendHigh):number(oldSettings.weekdayMax,out.settings.kcalHigh);
+      out.days[date]={
+        plannedKey:workoutKey,completed:rawDay.done===true,score:number(rawDay.score,0),scoreVersion:2,nutritionComplete:rawDay.done===true,
+        habits:{plan:oldHabits.structured===true || training.completed===true,water:number(rawDay.water,0)>=waterTarget,mobility:oldHabits.mobility===true,sleep:number(rawDay.sleep,0)>=sleepTarget},
+        readiness:{energy:number(training.energy,3),ankle:number(training.ankle,0),achilles:number(training.achilles,0),back:number(training.back,0),sleepHours:number(rawDay.sleep)>0?number(rawDay.sleep):null,reaction:"unknown",legacy:true},
+        targets:{low,high,protein:proteinTarget,threshold:70},legacyOriginal:clone(rawDay)
+      };
+      const meals=Array.isArray(rawDay.meals)?rawDay.meals:[];
+      out.foods[date]=meals.map((meal,index)=>({id:`p2026v2:${date}:meal:${index}`,name:String(meal?.name||"").trim(),kcal:number(meal?.kcal,0),protein:number(meal?.protein,0),qty:1,basis:"portion",at:meal?.at,legacy:true}));
+      const totals=foodTotals(out,date),missingKcal=number(rawDay.calories,totals.kcal)-totals.kcal,missingProtein=number(rawDay.protein,totals.protein)-totals.protein;
+      if(missingKcal>0 || missingProtein>0)out.foods[date].push({id:`p2026v2:${date}:manual`,name:"Manuell dagsregistrering fra gammel app",kcal:Math.max(0,missingKcal),protein:Math.max(0,missingProtein),qty:1,basis:"portion",legacy:true});
+      const entries=object(training.entries)?Object.entries(training.entries).map(([legacyId,entry])=>{
+        const match=/^phase\d+_(W\d+)_(\d+)$/.exec(legacyId),name=match?LEGACY_V2_EXERCISES[match[1]]?.[number(match[2])]:null;
+        return {exId:`legacy_${legacyId}`,name:name||legacyId,sets:[{weight:number(entry?.weight),reps:number(entry?.reps),done:false}],feel:entry?.feel||"",note:"Samlet øvelsesregistrering fra gammel app; antall utførte sett er ukjent.",legacyOriginal:clone(entry)};
+      }):[];
+      const phase=["phase1","phase2"].includes(training.phase)?training.phase:out.phase;
+      const record={id:`p2026v2:${date}:${workoutKey}`,date,key:workoutKey,phase,mode:"legacy",schemaVersion:2,legacy:true,entries,note:training.note||"",legacyOriginal:clone(training)};
+      if(training.completed===true)out.workouts.push(record);
+      else if(entries.length)out.drafts[`${date}|${phase}|${workoutKey}|legacy`]=record;
+    }
+    const streak=object(decoded.streak)?decoded.streak:{};out.legacyBestStreak=Math.max(number(streak.best,0),number(streak.current,0));
+    for(const [key,value] of Object.entries(decoded))if(key.startsWith("last_"))out.legacyExerciseMeta[key]=clone(value);
+    out.importedLegacy=clone(input);out.legacyMigrated=true;out.legacyMigrationVersion=VERSION;
+    return normalizeState(out);
+  }
   function defaultPlanKey(date,plan=DEFAULT_SETTINGS.weeklyPlan) { return plan[date.getDay()] || "REST"; }
   function targetsFor(state,date,key) {
     const s=state.settings, weekend=[0,5,6].includes(dateFromISO(date).getDay());
@@ -168,7 +227,9 @@
     for(const [date,foods] of Object.entries(incoming.foods))out.foods[date]=union(out.foods[date]||[],foods,f=>f.id);
     out.drafts={...incoming.drafts,...out.drafts};out.formDrafts={...incoming.formDrafts,...out.formDrafts};
     out.legacyExerciseMeta={...incoming.legacyExerciseMeta,...out.legacyExerciseMeta};
+    out.legacyBestStreak=Math.max(number(out.legacyBestStreak,0),number(incoming.legacyBestStreak,0));
+    if(object(incoming.importedLegacy))out.importedLegacy={...(object(out.importedLegacy)?out.importedLegacy:{}),...incoming.importedLegacy};
     return normalizeState(out);
   }
-  return {VERSION,STORE_KEY,DEFAULT_SETTINGS,defaultState,normalizeState,settingsError,validateFood,number,clamp,localISO,dateFromISO,validDate,addDays,dayDistance,defaultPlanKey,targetsFor,foodTotals,readinessInfo,LOWER_KEYS,LOWER_IDS,recentLegLoad,exerciseHistory,recommendation,scoreDay,streakStats,weightSummary,mergeState};
+  return {VERSION,STORE_KEY,DEFAULT_SETTINGS,defaultState,normalizeState,settingsError,validateFood,isLegacyV2Backup,convertLegacyV2Backup,number,clamp,localISO,dateFromISO,validDate,addDays,dayDistance,defaultPlanKey,targetsFor,foodTotals,readinessInfo,LOWER_KEYS,LOWER_IDS,recentLegLoad,exerciseHistory,recommendation,scoreDay,streakStats,weightSummary,mergeState};
 });

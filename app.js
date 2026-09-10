@@ -430,9 +430,9 @@
       if(file.size>10*1024*1024)throw Error("Backupen er større enn 10 MB.");
       const text=await file.text();
       const parsed=JSON.parse(text,(key,value)=>{if(["__proto__","prototype","constructor"].includes(key))throw Error("Ugyldig nøkkel i backup");return value;});
-      const incoming=C.normalizeState(parsed.state||parsed),replace=el("import-mode").value==="replace";
+      const oldFormat=C.isLegacyV2Backup(parsed),incoming=oldFormat?C.convertLegacyV2Backup(parsed):C.normalizeState(parsed.state||parsed),replace=el("import-mode").value==="replace";
       if(repository.blocked && !replace)throw Error("Eksporter originaldata først, og velg full gjenoppretting fra en gyldig backup.");
-      const summary=`${incoming.workouts.length} økter, ${Object.values(incoming.foods).flat().length} matlinjer og ${incoming.metrics.length} målinger.`;
+      const summary=`${oldFormat?"Eldre backup gjenkjent. ":""}${incoming.workouts.length} aktiviteter, ${Object.values(incoming.foods).flat().length} matlinjer og ${incoming.metrics.length} målinger.`;
       if(!confirm(`${summary} ${replace?"Erstatte nåværende data? En gjenopprettingskopi lagres først.":"Legge til manglende historikk? Ved samme dato/ID beholdes eksisterende registrering."}`))return;
       const next=replace?incoming:C.mergeState(state,incoming);
       next.legacyMigrationVersion=VERSION;
