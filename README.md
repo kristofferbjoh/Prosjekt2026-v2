@@ -1,4 +1,4 @@
-# Prosjekt 2026 v2.1
+# Prosjekt 2026 v2.1.1
 
 Personlig, mobiltilpasset trenings- og matcoach. Statisk PWA uten konto, sporing, server eller betalte API-er. Brukerdata lagres på enheten og sendes ikke til GitHub eller Netlify.
 
@@ -16,7 +16,7 @@ Personlig, mobiltilpasset trenings- og matcoach. Statisk PWA uten konto, sporing
 
 Beholder lagringsnøkkelen `p2026_v2_state`. Dataskjema 3 er en additiv oppdatering av v2. Ukjente felt beholdes. Original v2 lagres før migrering i `p2026_v2_state_before_v3`; eldre `p2026_*` nøkler slettes ikke. Treningsutkast, alternativ trening og tidligere beste streak tas med fra den gamle appen.
 
-Import valideres før skriving. Standard er å legge til manglende poster; ved samme dato/ID beholdes eksisterende. Full gjenoppretting krever bekreftelse og lager en lokal gjenopprettingskopi. Eksporter egen backup før bytte av enhet/nettadresse eller sletting av nettleserdata. Data synkroniseres **ikke** mellom enheter eller domener.
+Import valideres før skriving. Rå `p2026v2_*`-backup fra den første v2-appen gjenkjennes og konverteres med originaldataene bevart. Standard er å legge til manglende poster; ved samme dato/ID beholdes eksisterende. Full gjenoppretting krever bekreftelse og lager en lokal gjenopprettingskopi. Eksporter egen backup før bytte av enhet/nettadresse eller sletting av nettleserdata. Data synkroniseres **ikke** mellom enheter eller domener.
 
 Lagringsfeil vises permanent, og korrupt lagring overskrives ikke med en tom app. Stale skrivinger fra andre faner avvises. Ved konflikt: eksporter åpne utkast og last siden på nytt. Bruk helst én fane. LocalStorage er fortsatt begrenset av nettleserens kvote; lokal gjenopprettingskopi beskytter ikke mot sletting av all nettleserdata.
 

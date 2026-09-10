@@ -56,6 +56,16 @@ test('invalid import is atomic; merge and replace operate only after validation'
     await importFile({state:incoming});assert.equal(a.state().metrics.length,1);assert.deepEqual(a.errors,[]);
   }finally{a.close();}
 });
+test('phone backup from the earlier p2026v2 app imports safely and idempotently',async()=>{
+  const date='2026-08-13',oldDay={date,calories:1410,protein:124,water:2,sleep:8,meals:[{name:'Knekkebrød med egg',kcal:340,protein:30,at:'2026-08-13T10:00:00.000Z'}],habits:{movement:true,mobility:true,creatine:false,structured:true},done:true,score:70,training:{phase:'phase2',workoutKey:'W2',energy:3,achilles:0,ankle:1,back:1,note:'Øvelsesbytte bevart',completed:true,entries:{phase2_W2_0:{weight:'7.5',reps:'10',feel:'ok'}}}};
+  const legacy={p2026v2_settings:JSON.stringify({weekdayMin:1800,weekdayMax:2100,weekendMin:2400,weekendMax:2800,footballCalories:2100,proteinMin:150,proteinMax:170,goalWeight:87.5,waterTarget:2,sleepTarget:7}),p2026v2_weights:JSON.stringify([{date,weight:95.3,note:'beholdes'}]),[`p2026v2_day_${date}`]:JSON.stringify(oldDay),p2026v2_streak:JSON.stringify({current:5,best:5,last:date}),p2026v2_last_phase2_W2_0:JSON.stringify({weight:'7.5',reps:'10',feel:'ok'})};
+  const a=await app();try{
+    const importFile=async()=>{const file={size:1000,text:async()=>JSON.stringify(legacy)};Object.defineProperty(a.el('import-data'),'files',{value:[file],configurable:true});a.el('import-data').dispatchEvent(new a.w.Event('change'));await new Promise(r=>setTimeout(r,30));};
+    await importFile();await importFile();const s=a.state();
+    assert.equal(s.metrics.length,1);assert.equal(s.workouts.length,1);assert.equal(s.workouts[0].legacy,true);assert.equal(s.workouts[0].note,'Øvelsesbytte bevart');assert.equal(s.workouts[0].entries[0].sets[0].weight,7.5);
+    assert.equal(s.foods[date].length,2);assert.deepEqual(C.foodTotals(s,date),{kcal:1410,protein:124});assert.equal(s.days[date].score,70);assert.equal(s.legacyBestStreak,5);assert.deepEqual(s.importedLegacy,legacy);assert.deepEqual(a.errors,[]);
+  }finally{a.close();}
+});
 test('edited completed day rescores without re-completing or changing yesterday',async()=>{
   const today=C.localISO(),s=C.defaultState();s.days[today]={completed:true,score:100,habits:{plan:true},nutritionComplete:true};s.foods[today]=[{id:'f',name:'Meal',kcal:2000,protein:170,qty:1}];
   const a=await app({[C.STORE_KEY]:JSON.stringify(s)});try{a.w.document.querySelector('[data-del-food]').click();assert.equal(a.state().days[today].score,25);assert.equal(a.state().days[today].completed,true);assert.deepEqual(a.errors,[]);}finally{a.close();}
