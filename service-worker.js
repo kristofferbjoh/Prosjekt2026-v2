@@ -1,5 +1,5 @@
 /* Prosjekt 2026 v3 – coherent offline release */
-const RELEASE = "3.0.0";
+const RELEASE = "3.0.1";
 const CACHE = `prosjekt2026-shell-${RELEASE}`;
 const SHELL = ["/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", ...["style.css","coach-core.js","storage.js","programs.js","app.js","pwa.js"].map(p=>`/${p}?v=${RELEASE}`)];
 self.addEventListener("install", event => {

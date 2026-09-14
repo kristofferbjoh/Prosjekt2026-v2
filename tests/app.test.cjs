@@ -60,7 +60,8 @@ test('session exercise can be changed for today without mutating the template',a
 test('program template edit persists and rotation remains valid',async()=>{
   const a=await app();try{
     a.w.document.querySelector('[data-tab="program"]').click();
-    const edit=a.w.document.querySelector('[data-edit-template="W1"][data-index="0"]');assert(edit);edit.click();
+    const open=a.w.document.querySelector('[data-template-open="W1"]');assert(open);open.click();
+    const edit=a.w.document.querySelector('[data-edit-template="W1"][data-ex-index="0"]');assert(edit);edit.click();
     a.input('editor-name','Permanent row');a.click('editor-save-template-only');
     assert.equal(a.state().customTemplates.phase2.W1.main[0].name,'Permanent row');assert(a.state().trainingRotation.length>=1);assert.deepEqual(a.errors,[]);
   }finally{a.close();}

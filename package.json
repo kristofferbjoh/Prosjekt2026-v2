@@ -1,6 +1,6 @@
 {
   "name": "prosjekt-2026",
-  "version": "2.1.1",
+  "version": "3.0.1",
   "private": true,
   "description": "Offline personal strength training log. No production dependencies.",
   "scripts": {
@@ -8,6 +8,10 @@
     "check": "node scripts/check.cjs",
     "build": "npm test && npm run check && node scripts/build.cjs"
   },
-  "devDependencies": { "jsdom": "26.1.0" },
-  "engines": { "node": ">=22" }
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }
