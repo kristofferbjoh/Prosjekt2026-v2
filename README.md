@@ -1,6 +1,6 @@
-# Prosjekt 2026 v3.0.1
+# Prosjekt 2026 v3.1.0
 
-En mobiltilpasset og offlineklar styrkelogg for Prosjekt 2026. Appen er statisk, gratis å drifte og lagrer brukerdata lokalt på enheten.
+En mobiltilpasset og offlineklar styrkelogg for Prosjekt 2026 med matt sort, varm hvit og dempet gull som visuell identitet. Appen er statisk, gratis å drifte og lagrer brukerdata lokalt på enheten.
 
 ## Hovedfunksjoner
 
