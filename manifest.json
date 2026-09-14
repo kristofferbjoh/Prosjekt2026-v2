@@ -1,45 +1,21 @@
 {
   "name": "Prosjekt 2026",
   "short_name": "Prosjekt 2026",
-  "description": "Personlig trenings-, mat- og progresjonsapp.",
-  "start_url": "/?tab=today",
+  "description": "Personlig styrketreningslogg med øktmaler, historikk og progresjon.",
+  "start_url": "/?tab=home",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#080d18",
-  "theme_color": "#0a0f1e",
+  "background_color": "#0b0f0d",
+  "theme_color": "#0b0f0d",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    }
+    { "src": "/icon-192.png", "sizes": "1024x1024", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "1024x1024", "type": "image/png" }
   ],
   "shortcuts": [
-    {
-      "name": "I dag",
-      "short_name": "I dag",
-      "url": "/?tab=today"
-    },
-    {
-      "name": "Trening",
-      "short_name": "Trening",
-      "url": "/?tab=training"
-    },
-    {
-      "name": "Mat",
-      "short_name": "Mat",
-      "url": "/?tab=food"
-    },
-    {
-      "name": "Fremgang",
-      "short_name": "Fremgang",
-      "url": "/?tab=progress"
-    }
+    { "name": "Neste økt", "short_name": "Neste", "url": "/?tab=home" },
+    { "name": "Start økt", "short_name": "Økt", "url": "/?tab=session" },
+    { "name": "Historikk", "short_name": "Logg", "url": "/?tab=history" },
+    { "name": "Program", "short_name": "Program", "url": "/?tab=program" }
   ],
   "lang": "nb"
 }
